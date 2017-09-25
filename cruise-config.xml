@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cruise xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="cruise-config.xsd" schemaVersion="95">
+  <server artifactsdir="artifacts" agentAutoRegisterKey="04501706-90e2-479c-a5fc-dcabada91f5a" webhookSecret="63dae32f-90ea-45f5-9e14-a3133045ad77" commandRepositoryLocation="default" serverId="ae73ac08-fa61-41e8-a96d-46f00ace89d0">
+    <elastic>
+      <profiles>
+        <profile id="plugin-build" pluginId="cd.go.contrib.elastic-agent.docker-swarm">
+          <property>
+            <key>Image</key>
+            <value>gocd/gocd-agent-alpine-3.5:v17.10.0</value>
+          </property>
+          <property>
+            <key>Command</key>
+            <value />
+          </property>
+          <property>
+            <key>Environment</key>
+            <value />
+          </property>
+          <property>
+            <key>MaxMemory</key>
+            <value>500M</value>
+          </property>
+          <property>
+            <key>ReservedMemory</key>
+            <value>500M</value>
+          </property>
+          <property>
+            <key>Hosts</key>
+            <value />
+          </property>
+          <property>
+            <key>Secrets</key>
+            <value />
+          </property>
+        </profile>
+      </profiles>
+    </elastic>
+  </server>
+  <pipelines group="plugin-builds">
+    <pipeline name="docker-elastic-agents">
+      <materials>
+        <git url="https://github.com/gocd-contrib/docker-elastic-agents" />
+      </materials>
+      <stage name="run-junit">
+        <jobs>
+          <job name="test" elasticProfileId="plugin-build">
+            <tasks>
+              <exec command="./gradlew">
+                <arg>clean</arg>
+                <arg>assemble</arg>
+                <arg>test</arg>
+              </exec>
+            </tasks>
+          </job>
+        </jobs>
+      </stage>
+      <stage name="build-artifact">
+        <jobs>
+          <job name="build" elasticProfileId="plugin-build">
+            <tasks>
+              <exec command="./gradlew">
+                <arg>clean</arg>
+                <arg>build</arg>
+              </exec>
+            </tasks>
+            <artifacts>
+              <artifact src="build/libs/*.jar" dest="dist" />
+            </artifacts>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+  </pipelines>
+</cruise>
